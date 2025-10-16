@@ -4,8 +4,9 @@ TensorFlow Lite Model Loader for Teachable Machine models
 
 import os
 import numpy as np
+import cv2
 from typing import List, Tuple, Optional
-import tflite_runtime.interpreter as tflite
+import tensorflow as tf
 
 
 class ModelLoader:
@@ -44,7 +45,7 @@ class ModelLoader:
                 return False
             
             # Load TensorFlow Lite model
-            self.interpreter = tflite.Interpreter(model_path=self.model_path)
+            self.interpreter = tf.lite.Interpreter(model_path=self.model_path)
             self.interpreter.allocate_tensors()
             
             # Get input and output details
