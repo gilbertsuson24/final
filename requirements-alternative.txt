@@ -1,0 +1,20 @@
+# Alternative requirements for Raspberry Pi 5 Object Detection
+# Use this if the main requirements.txt doesn't work
+
+# Core dependencies
+opencv-python>=4.8.0
+numpy>=1.24.0
+
+# Option 1: Full TensorFlow (most compatible)
+tensorflow>=2.14.0
+
+# Option 2: TensorFlow Lite with specific wheel (uncomment to use)
+# --find-links https://github.com/google-coral/pycoral/releases/download/v2.0.0/
+# tflite-runtime==2.14.0
+
+# Option 3: Use TensorFlow Lite from source (if above options fail)
+# --no-binary=tflite-runtime
+# tflite-runtime>=2.14.0
+
+# Optional: For better performance
+pillow>=9.0.0
