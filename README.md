@@ -130,17 +130,17 @@ plastic bottle
 ### Basic Usage
 
 ```bash
-# Run with default model paths
+# Run with camera window (default behavior)
 python3 main_controller.py
 
-# Run with custom model paths
+# Run with custom model paths (includes camera window)
 python3 main_controller.py path/to/your/model.tflite path/to/your/labels.txt
 
-# Run with separate camera window
-python3 main_controller.py --camera-window
+# Run without camera window (main detection only)
+python3 main_controller.py --no-camera-window
 
-# Run with custom model paths and camera window
-python3 main_controller.py --camera-window path/to/your/model.tflite path/to/your/labels.txt
+# Run without camera window with custom model
+python3 main_controller.py --no-camera-window path/to/your/model.tflite path/to/your/labels.txt
 ```
 
 ### Camera Window Mode

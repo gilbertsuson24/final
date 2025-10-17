@@ -335,7 +335,7 @@ class ObjectDetectionController:
         print("Object detection stopped")
     
     def run(self):
-        """Run the complete object detection application"""
+        """Run the complete object detection application with camera window"""
         print("Raspberry Pi 5 Object Detection System")
         print("=" * 40)
         
@@ -359,6 +359,16 @@ class ObjectDetectionController:
         print("Initializing model...")
         if not self.initialize_model():
             return False
+        
+        # Initialize camera window (always show by default)
+        print("Initializing camera window...")
+        if not self.initialize_camera_window():
+            print("Warning: Camera window failed to initialize, continuing without it")
+        else:
+            # Start camera window
+            print("Starting camera window...")
+            if not self.start_camera_window():
+                print("Warning: Camera window failed to start, continuing without it")
         
         # Run detection loop
         try:
@@ -420,12 +430,18 @@ def main():
     # Default model paths
     model_path = "model/model.tflite"
     labels_path = "model/labels.txt"
-    use_camera_window = False
+    disable_camera_window = False
     
     # Check command line arguments
     if len(sys.argv) > 1:
-        if sys.argv[1] == "--camera-window":
-            use_camera_window = True
+        if sys.argv[1] == "--no-camera-window":
+            disable_camera_window = True
+            if len(sys.argv) > 2:
+                model_path = sys.argv[2]
+            if len(sys.argv) > 3:
+                labels_path = sys.argv[3]
+        elif sys.argv[1] == "--camera-window":
+            # Keep camera window enabled (default behavior)
             if len(sys.argv) > 2:
                 model_path = sys.argv[2]
             if len(sys.argv) > 3:
@@ -438,10 +454,13 @@ def main():
     # Create and run controller
     controller = ObjectDetectionController(model_path, labels_path)
     
-    if use_camera_window:
-        print("Running with camera window...")
-        success = controller.run_with_camera_window()
+    if disable_camera_window:
+        print("Running without camera window...")
+        # Temporarily disable camera window for this run
+        controller.show_camera_window = False
+        success = controller.run()
     else:
+        print("Running with camera window (default)...")
         success = controller.run()
     
     if not success:
