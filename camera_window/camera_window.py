@@ -271,10 +271,16 @@ class CameraWindow:
             threading.Thread: Thread running the camera window
         """
         def window_thread():
-            self.run_window()
+            try:
+                self.run_window()
+            except Exception as e:
+                print(f"Error in camera window thread: {e}")
         
         thread = threading.Thread(target=window_thread, daemon=True)
         thread.start()
+        
+        # Give the thread a moment to start
+        time.sleep(1)
         return thread
     
     def is_window_running(self) -> bool:
