@@ -1,6 +1,7 @@
 """
 Camera Manager for OV5647 camera module on Raspberry Pi 5
-Compatible with Debian Trixie using libcamera tools
+Compatible with Debian Bookworm using rpicam tools (preferred for OV5647)
+Falls back to libcamera if rpicam is not available
 """
 
 import subprocess
@@ -12,7 +13,7 @@ from typing import Optional, Tuple
 
 
 class CameraManager:
-    """Manages OV5647 camera using libcamera for live video feed"""
+    """Manages OV5647 camera using rpicam (preferred) or libcamera for live video feed"""
     
     def __init__(self, width: int = 640, height: int = 480, fps: int = 30):
         """
@@ -30,33 +31,74 @@ class CameraManager:
         self.current_frame = None
         self.camera_process = None
         self.frame_lock = threading.Lock()
+        self.camera_tool = None  # Will be set to 'rpicam' or 'libcamera'
+    
+    def detect_camera_tool(self) -> str:
+        """
+        Detect which camera tool is available (rpicam preferred for OV5647)
+        
+        Returns:
+            str: 'rpicam', 'libcamera', or None if neither available
+        """
+        # Try rpicam first (preferred for OV5647 on Pi 5)
+        try:
+            result = subprocess.run(['which', 'rpicam-vid'], 
+                                  capture_output=True, text=True, timeout=5)
+            if result.returncode == 0:
+                return 'rpicam'
+        except:
+            pass
+        
+        # Fallback to libcamera
+        try:
+            result = subprocess.run(['which', 'libcamera-vid'], 
+                                  capture_output=True, text=True, timeout=5)
+            if result.returncode == 0:
+                return 'libcamera'
+        except:
+            pass
+        
+        return None
         
     def start_camera(self) -> bool:
         """
-        Start camera using libcamera-vid
+        Start camera using rpicam (preferred) or libcamera
         
         Returns:
             bool: True if camera started successfully
         """
         try:
-            # Check if libcamera-vid is available
-            result = subprocess.run(['which', 'libcamera-vid'], 
-                                  capture_output=True, text=True)
-            if result.returncode != 0:
-                print("Error: libcamera-vid not found. Please install libcamera-tools")
+            # Detect available camera tool
+            self.camera_tool = self.detect_camera_tool()
+            if not self.camera_tool:
+                print("Error: No camera tools found. Please install rpicam-apps or libcamera-tools")
                 return False
             
-            # Start libcamera-vid process with output to stdout
-            cmd = [
-                'libcamera-vid',
-                '--width', str(self.width),
-                '--height', str(self.height),
-                '--framerate', str(self.fps),
-                '--output', '-',  # Output to stdout
-                '--codec', 'mjpeg',
-                '--timeout', '0',  # Run indefinitely
-                '--nopreview'
-            ]
+            print(f"Using camera tool: {self.camera_tool}")
+            
+            # Build command based on detected tool
+            if self.camera_tool == 'rpicam':
+                cmd = [
+                    'rpicam-vid',
+                    '--width', str(self.width),
+                    '--height', str(self.height),
+                    '--framerate', str(self.fps),
+                    '--output', '-',  # Output to stdout
+                    '--codec', 'mjpeg',
+                    '--timeout', '0',  # Run indefinitely
+                    '--nopreview'
+                ]
+            else:  # libcamera
+                cmd = [
+                    'libcamera-vid',
+                    '--width', str(self.width),
+                    '--height', str(self.height),
+                    '--framerate', str(self.fps),
+                    '--output', '-',  # Output to stdout
+                    '--codec', 'mjpeg',
+                    '--timeout', '0',  # Run indefinitely
+                    '--nopreview'
+                ]
             
             self.camera_process = subprocess.Popen(
                 cmd, 
@@ -65,7 +107,7 @@ class CameraManager:
             )
             
             self.is_running = True
-            print(f"Camera started: {self.width}x{self.height} @ {self.fps}fps")
+            print(f"Camera started with {self.camera_tool}: {self.width}x{self.height} @ {self.fps}fps")
             return True
             
         except Exception as e:
@@ -133,9 +175,19 @@ class CameraManager:
             bool: True if camera is available
         """
         try:
-            # Test camera availability using libcamera-hello
-            result = subprocess.run(['libcamera-hello', '--list-cameras'], 
-                                  capture_output=True, text=True, timeout=5)
+            # Detect camera tool first
+            camera_tool = self.detect_camera_tool()
+            if not camera_tool:
+                return False
+            
+            # Test camera availability using appropriate tool
+            if camera_tool == 'rpicam':
+                result = subprocess.run(['rpicam-vid', '--list-cameras'], 
+                                      capture_output=True, text=True, timeout=5)
+            else:  # libcamera
+                result = subprocess.run(['libcamera-hello', '--list-cameras'], 
+                                      capture_output=True, text=True, timeout=5)
+            
             return result.returncode == 0
         except:
             return False

@@ -1,6 +1,6 @@
 # Raspberry Pi 5 Object Detection System
 
-A Python-based object detection system for Raspberry Pi 5 running Debian Trixie, using the OV5647 camera module and TensorFlow Lite for real-time object detection.
+A Python-based object detection system for Raspberry Pi 5 running Debian Bookworm, using the OV5647 camera module and TensorFlow Lite for real-time object detection. Optimized for OV5647 camera compatibility with rpicam tools.
 
 ## Features
 
@@ -9,7 +9,8 @@ A Python-based object detection system for Raspberry Pi 5 running Debian Trixie,
 - **Object Detection**: Detects crumpled paper, disposable cups, plastic bottles, and more
 - **Confidence Display**: Shows detection confidence percentages
 - **Smooth Detection**: Detection smoothing to reduce flickering
-- **Debian Trixie Compatible**: Optimized for Raspberry Pi 5 with pure Debian
+- **Debian Bookworm Compatible**: Optimized for Raspberry Pi 5 with rpicam tools
+- **OV5647 Optimized**: Specifically designed for OV5647 camera module compatibility
 
 ## Project Structure
 
@@ -31,19 +32,34 @@ ROBOT/
 ## Prerequisites
 
 ### System Requirements
-- Raspberry Pi 5 with Debian Trixie
+- Raspberry Pi 5 with Debian Bookworm (Raspberry Pi OS)
 - OV5647 camera module
-- Python 3.9+ (included with Debian Trixie)
+- Python 3.9+ (included with Debian Bookworm)
 
-### System Dependencies
+### Quick Setup
 
-Install required system packages:
+For easy setup, use the provided setup script:
+
+```bash
+# Make setup script executable
+chmod +x setup_camera.sh
+
+# Run setup script
+./setup_camera.sh
+```
+
+### Manual System Dependencies
+
+If you prefer manual installation:
 
 ```bash
 # Update package list
 sudo apt update
 
-# Install libcamera-tools for camera access
+# Install rpicam-apps (preferred for OV5647)
+sudo apt install rpicam-apps
+
+# Install libcamera-tools (fallback option)
 sudo apt install libcamera-tools libcamera-dev
 
 # Install OpenCV system dependencies
@@ -51,6 +67,10 @@ sudo apt install python3-opencv libopencv-dev
 
 # Install other dependencies
 sudo apt install python3-pip python3-venv
+
+# Enable camera interface
+sudo raspi-config
+# Navigate to: Interface Options > Camera > Enable
 ```
 
 ## Installation
@@ -130,11 +150,14 @@ You can modify these in `camera/camera_manager.py` if needed.
 
 1. **Camera not detected**:
    ```bash
-   # Test camera availability
-   libcamera-hello --list-cameras
+   # Run diagnostic tool
+   python3 camera_diagnostic.py
    
-   # Test camera capture
-   libcamera-vid --width 640 --height 480 --output test.h264
+   # Test with rpicam (preferred for OV5647)
+   rpicam-vid --list-cameras
+   
+   # Test with libcamera (fallback)
+   libcamera-hello --list-cameras
    ```
 
 2. **Permission denied**:
@@ -142,6 +165,19 @@ You can modify these in `camera/camera_manager.py` if needed.
    # Add user to video group
    sudo usermod -a -G video $USER
    # Log out and back in
+   ```
+
+3. **OV5647 specific issues**:
+   ```bash
+   # Ensure camera interface is enabled
+   sudo raspi-config
+   # Navigate to: Interface Options > Camera > Enable
+   
+   # Reboot after enabling
+   sudo reboot
+   
+   # Test camera after reboot
+   rpicam-vid --list-cameras
    ```
 
 ### Model Issues
@@ -212,9 +248,9 @@ Edit the `draw_detection_info()` method in `main_controller.py` to customize the
 
 - **Raspberry Pi 5**: Fully supported
 - **Camera Module**: OV5647 (replacement camera for Pi 5)
-- **Camera API**: libcamera (standard Linux camera interface)
-- **OS**: Debian Trixie (pure Debian, not Raspberry Pi OS)
-- **Python**: 3.9+ (included with Debian Trixie)
+- **Camera API**: rpicam (preferred) or libcamera (fallback)
+- **OS**: Debian Bookworm (Raspberry Pi OS recommended)
+- **Python**: 3.9+ (included with Debian Bookworm)
 
 ## License
 

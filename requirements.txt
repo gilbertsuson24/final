@@ -16,9 +16,9 @@ tflite-runtime>=2.14.0
 # If tflite-runtime installation fails, uncomment the tensorflow line above
 # and comment out the tflite-runtime line
 
-# System dependencies (install via apt on Debian Trixie)
-# rpicam-apps (for camera access)
-# libcamera-dev
+# System dependencies (install via apt on Debian Bookworm)
+# rpicam-apps (preferred for OV5647 camera on Pi 5)
+# libcamera-tools (fallback option)
 # python3-opencv
 
 # Optional: For better performance

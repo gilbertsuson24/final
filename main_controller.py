@@ -52,11 +52,21 @@ class ObjectDetectionController:
             # Check if camera is available
             if not self.camera.is_camera_available():
                 print("Error: Camera not available. Please check camera connection.")
+                print("\nTroubleshooting steps:")
+                print("1. Run: python3 camera_diagnostic.py")
+                print("2. Check camera ribbon cable connection")
+                print("3. Enable camera interface: sudo raspi-config")
+                print("4. Install camera tools: sudo apt install rpicam-apps")
+                print("5. Reboot after making changes")
                 return False
             
             # Start camera
             if not self.camera.start_camera():
                 print("Error: Failed to start camera")
+                print("This may be due to:")
+                print("- Camera already in use by another process")
+                print("- Insufficient permissions")
+                print("- Hardware connection issues")
                 return False
             
             print("Camera initialized successfully")
