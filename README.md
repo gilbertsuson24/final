@@ -19,12 +19,19 @@ ROBOT/
 ├── camera/                 # Camera management module
 │   ├── __init__.py
 │   └── camera_manager.py  # OV5647 camera handling with rpicam
+├── camera_window/          # Camera window module
+│   ├── __init__.py
+│   └── camera_window.py   # Separate camera window with confidence display
 ├── model/                 # TensorFlow Lite model directory
 │   ├── __init__.py
 │   ├── model_loader.py    # Model loading and inference
 │   ├── model.tflite      # Your Teachable Machine model (place here)
 │   └── labels.txt        # Your model labels (place here)
 ├── main_controller.py     # Main application controller
+├── run_camera_window.py   # Standalone camera window runner
+├── camera_window_demo.py  # Camera window demo with simulations
+├── camera_diagnostic.py   # Camera diagnostic tool
+├── setup_camera.sh        # Automated setup script
 ├── requirements.txt       # Python dependencies
 └── README.md             # This file
 ```
@@ -128,6 +135,35 @@ python3 main_controller.py
 
 # Run with custom model paths
 python3 main_controller.py path/to/your/model.tflite path/to/your/labels.txt
+
+# Run with separate camera window
+python3 main_controller.py --camera-window
+
+# Run with custom model paths and camera window
+python3 main_controller.py --camera-window path/to/your/model.tflite path/to/your/labels.txt
+```
+
+### Camera Window Mode
+
+The camera window mode provides a separate window that displays:
+- Live camera feed
+- Real-time confidence levels
+- Detection status
+- Object class information
+- Visual confidence bar
+
+```bash
+# Run standalone camera window
+python3 run_camera_window.py
+
+# Run camera window with custom model
+python3 run_camera_window.py path/to/your/model.tflite path/to/your/labels.txt
+
+# Run camera window demo (simulated detections)
+python3 camera_window_demo.py simulation
+
+# Run camera window demo (real model detection)
+python3 camera_window_demo.py model
 ```
 
 ### Controls

@@ -14,6 +14,7 @@ from typing import Tuple, Optional
 # Import our custom modules
 from camera import CameraManager
 from model import ModelLoader
+from camera_window import CameraWindow
 
 
 class ObjectDetectionController:
@@ -33,6 +34,8 @@ class ObjectDetectionController:
         self.camera = None
         self.model = None
         self.is_running = False
+        self.camera_window = None
+        self.show_camera_window = False
         
         # Detection parameters
         self.confidence_threshold = 0.5
@@ -96,6 +99,49 @@ class ObjectDetectionController:
         except Exception as e:
             print(f"Error initializing model: {e}")
             return False
+    
+    def initialize_camera_window(self) -> bool:
+        """
+        Initialize camera window for separate display
+        
+        Returns:
+            bool: True if camera window initialized successfully
+        """
+        try:
+            self.camera_window = CameraWindow(width=640, height=480, fps=30)
+            print("Camera window initialized successfully")
+            return True
+        except Exception as e:
+            print(f"Error initializing camera window: {e}")
+            return False
+    
+    def start_camera_window(self) -> bool:
+        """
+        Start camera window in separate thread
+        
+        Returns:
+            bool: True if camera window started successfully
+        """
+        try:
+            if not self.camera_window:
+                if not self.initialize_camera_window():
+                    return False
+            
+            # Start camera window in separate thread
+            self.camera_window.run_window_threaded()
+            self.show_camera_window = True
+            print("Camera window started in separate thread")
+            return True
+        except Exception as e:
+            print(f"Error starting camera window: {e}")
+            return False
+    
+    def stop_camera_window(self):
+        """Stop camera window"""
+        if self.camera_window:
+            self.camera_window.stop_camera()
+            self.show_camera_window = False
+            print("Camera window stopped")
     
     def draw_detection_info(self, frame: np.ndarray, 
                           class_name: str, confidence: float) -> np.ndarray:
@@ -241,6 +287,10 @@ class ObjectDetectionController:
                         # Update history
                         self.update_detection_history(class_name, confidence)
                         
+                        # Update camera window if active
+                        if self.camera_window and self.show_camera_window:
+                            self.camera_window.update_detection(class_name, confidence)
+                        
                         last_detection_time = current_time
                 
                 # Get smoothed detection result
@@ -279,6 +329,8 @@ class ObjectDetectionController:
         cv2.destroyAllWindows()
         if self.camera:
             self.camera.stop_camera()
+        if self.camera_window:
+            self.camera_window.stop_camera()
         
         print("Object detection stopped")
     
@@ -316,6 +368,51 @@ class ObjectDetectionController:
             return False
         
         return True
+    
+    def run_with_camera_window(self):
+        """Run object detection with separate camera window"""
+        print("Raspberry Pi 5 Object Detection System with Camera Window")
+        print("=" * 60)
+        
+        # Check if model files exist
+        if not os.path.exists(self.model_path):
+            print(f"Error: Model file not found: {self.model_path}")
+            print("Please place your .tflite model file in the model/ directory")
+            return False
+        
+        if not os.path.exists(self.labels_path):
+            print(f"Error: Labels file not found: {self.labels_path}")
+            print("Please place your labels.txt file in the model/ directory")
+            return False
+        
+        # Initialize camera
+        print("Initializing camera...")
+        if not self.initialize_camera():
+            return False
+        
+        # Initialize model
+        print("Initializing model...")
+        if not self.initialize_model():
+            return False
+        
+        # Initialize camera window
+        print("Initializing camera window...")
+        if not self.initialize_camera_window():
+            return False
+        
+        # Start camera window
+        print("Starting camera window...")
+        if not self.start_camera_window():
+            print("Warning: Camera window failed to start, continuing without it")
+        
+        # Run detection loop
+        try:
+            self.run_detection_loop()
+        except Exception as e:
+            print(f"Error running detection: {e}")
+            return False
+        
+        return True
 
 
 def main():
@@ -323,16 +420,29 @@ def main():
     # Default model paths
     model_path = "model/model.tflite"
     labels_path = "model/labels.txt"
+    use_camera_window = False
     
     # Check command line arguments
     if len(sys.argv) > 1:
-        model_path = sys.argv[1]
-    if len(sys.argv) > 2:
-        labels_path = sys.argv[2]
+        if sys.argv[1] == "--camera-window":
+            use_camera_window = True
+            if len(sys.argv) > 2:
+                model_path = sys.argv[2]
+            if len(sys.argv) > 3:
+                labels_path = sys.argv[3]
+        else:
+            model_path = sys.argv[1]
+            if len(sys.argv) > 2:
+                labels_path = sys.argv[2]
     
     # Create and run controller
     controller = ObjectDetectionController(model_path, labels_path)
-    success = controller.run()
+    
+    if use_camera_window:
+        print("Running with camera window...")
+        success = controller.run_with_camera_window()
+    else:
+        success = controller.run()
     
     if not success:
         sys.exit(1)
