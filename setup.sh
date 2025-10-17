@@ -52,7 +52,19 @@ pip install --upgrade pip
 
 # Install Python dependencies
 echo "Installing Python dependencies..."
-pip install -r requirements.txt
+
+# Try tflite-runtime first (more efficient)
+echo "Attempting to install tflite-runtime..."
+if pip install tflite-runtime>=2.14.0; then
+    echo "✓ tflite-runtime installed successfully"
+else
+    echo "tflite-runtime installation failed, trying full TensorFlow..."
+    pip install tensorflow>=2.14.0
+    echo "✓ TensorFlow installed successfully"
+fi
+
+# Install other dependencies
+pip install opencv-python>=4.8.0 numpy>=1.24.0
 
 # Create model directory if it doesn't exist
 mkdir -p model

@@ -6,12 +6,15 @@ opencv-python>=4.8.0
 numpy>=1.24.0
 
 # TensorFlow Lite Runtime for ARM64 (Raspberry Pi 5)
-# Note: tflite-runtime doesn't have ARM64 wheels for Python 3.13
-# Using full TensorFlow instead for compatibility
-tensorflow>=2.14.0
+# Try tflite-runtime first (more efficient), fallback to full TensorFlow
+# Option 1: tflite-runtime (preferred for performance)
+tflite-runtime>=2.14.0
 
-# Alternative: If you want to try tflite-runtime, use this instead:
-# tflite-runtime>=2.14.0 --find-links https://github.com/google-coral/pycoral/releases/download/v2.0.0/tflite_runtime-2.14.0-cp313-cp313-linux_aarch64.whl
+# Option 2: Full TensorFlow (fallback if tflite-runtime fails)
+# tensorflow>=2.14.0
+
+# If tflite-runtime installation fails, uncomment the tensorflow line above
+# and comment out the tflite-runtime line
 
 # System dependencies (install via apt on Debian Trixie)
 # rpicam-apps (for camera access)

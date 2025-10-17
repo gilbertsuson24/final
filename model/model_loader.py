@@ -6,7 +6,17 @@ import os
 import numpy as np
 import cv2
 from typing import List, Tuple, Optional
-import tensorflow as tf
+
+# Try to import TensorFlow Lite runtime, fallback to full TensorFlow
+try:
+    import tflite_runtime.interpreter as tflite
+    TFLITE_AVAILABLE = True
+except ImportError:
+    try:
+        import tensorflow as tf
+        TFLITE_AVAILABLE = False
+    except ImportError:
+        raise ImportError("Neither tflite_runtime nor tensorflow is available. Please install one of them.")
 
 
 class ModelLoader:
@@ -45,7 +55,10 @@ class ModelLoader:
                 return False
             
             # Load TensorFlow Lite model
-            self.interpreter = tf.lite.Interpreter(model_path=self.model_path)
+            if TFLITE_AVAILABLE:
+                self.interpreter = tflite.Interpreter(model_path=self.model_path)
+            else:
+                self.interpreter = tf.lite.Interpreter(model_path=self.model_path)
             self.interpreter.allocate_tensors()
             
             # Get input and output details
